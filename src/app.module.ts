@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CartModule } from './cart/cart.module';
 // import { JwtMiddleware } from './auth/jwt.middleware'; 
+import { OrderModule } from './order/order.module';
 
 
 
@@ -16,7 +17,7 @@ const username = encodeURIComponent("fasseeh111");
 const password = encodeURIComponent("1JeDAVbJzCvAKG2x");
 
 @Module({
-  imports: [MongooseModule.forRoot(`mongodb+srv://${username}:${password}@cluster0.p1gygz9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`), ProductModule, UserModule, AuthModule, CartModule],
+  imports: [MongooseModule.forRoot(`mongodb+srv://${username}:${password}@cluster0.p1gygz9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`), ProductModule, UserModule, AuthModule, CartModule, OrderModule],
   controllers: [AppController],
   providers: [AppService],
 })

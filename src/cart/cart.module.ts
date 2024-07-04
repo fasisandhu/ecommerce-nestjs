@@ -9,6 +9,7 @@ import { ItemSchema } from './schemas/item.schema';
 @Module({
   imports:[MongooseModule.forFeature([{name:'Cart',schema:CartSchema},{name:'Item',schema:ItemSchema}]),ProductModule],
   controllers: [CartController],
-  providers: [CartService]
+  providers: [CartService],
+  exports:[CartService]
 })
 export class CartModule {}

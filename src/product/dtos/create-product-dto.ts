@@ -3,4 +3,5 @@ export class CreateProductDto{
     readonly author: string;
     readonly rating: number;
     readonly category: string;
+    readonly stock:number;
 }

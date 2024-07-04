@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from './schemas/cart.schema';
 import { ItemDto } from './dtos/item.dto';
@@ -35,7 +35,18 @@ export class CartService {
   }
 
   async deleteCart(userId: string): Promise<Cart> {
-    const cart = await this.CartModel.findOneAndDelete({ userId: userId });
+    const cart = await this.CartModel.findOne({ userId: userId });
+    cart.items.forEach(async(item)=>{
+      const product=await this.productService.getProduct(item.productId)
+      product.stock+=item.quantity
+      await this.productService.updateProduct(item.productId,{
+        name:product.name,
+        author:product.author,
+        rating:product.rating,
+        category:product.category,
+        stock:product.stock
+      })
+    })
     return cart;
   }
 
@@ -53,6 +64,10 @@ export class CartService {
       const {productId,quantity}=item
 
       const product=await this.productService.getProduct(productId)
+      if(product.stock<quantity)
+        {
+          throw new HttpException("Required quantity not avialable",HttpStatus.BAD_REQUEST)
+        }
 
       const subtotal=product.rating*quantity
 
@@ -70,12 +85,28 @@ export class CartService {
 
                   cart.items[itemIdx] = myitem;
                   this.recalCart(cart)
+                  product.stock-=quantity
+                  await this.productService.updateProduct(productId,{
+                    name:product.name,
+                    author:product.author,
+                    rating:product.rating,
+                    category:product.category,
+                    stock:product.stock
+                  })
                   return cart.save();
               }
               else
               {
                   cart.items.push({...item,subtotal})
                   this.recalCart(cart)
+                  product.stock-=quantity
+                  await this.productService.updateProduct(item.productId,{
+                    name:product.name,
+                    author:product.author,
+                    rating:product.rating,
+                    category:product.category,
+                    stock:product.stock
+                  })
                   return cart.save();
               }
           }
@@ -83,6 +114,7 @@ export class CartService {
           {
             console.log("inside add item")
               const newCart=await this.createCart(userid,item,subtotal,subtotal)//at start total price is equal to subtotal
+              product.stock-=quantity
               return newCart;
           }
   }
@@ -93,6 +125,15 @@ export class CartService {
     const itemIdx = cartt.items.findIndex((item) => item.productId == pid);
 
     if (itemIdx > -1) {
+      const product=await this.productService.getProduct(pid)
+      product.stock+=cartt.items[itemIdx].quantity
+      await this.productService.updateProduct(pid,{
+        name:product.name,
+        author:product.author,
+        rating:product.rating,
+        category:product.category,
+        stock:product.stock
+      })
       cartt.items.splice(itemIdx, 1);
       this.recalCart(cartt)
       return cartt.save();
