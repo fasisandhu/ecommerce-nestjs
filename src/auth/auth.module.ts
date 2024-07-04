@@ -12,7 +12,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 @Module({
   imports:[UserModule,PassportModule.register({defaultStrategy:'jwt'}),
     JwtModule.register({
-      secret: 'no secret',  // Replace with your secret
+      secret: 'no secret',
       signOptions: { expiresIn: 36 },
     })],
   controllers: [AuthController],

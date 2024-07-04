@@ -17,7 +17,7 @@ import { CreateProductDto } from './dtos/create-product-dto';
 export class ProductController {
   constructor(private productService: ProductService) {}
 
-  @Get()
+  @Post()
   async getProds(
     @Query()
     filters: FilterProductDto,
@@ -33,7 +33,7 @@ export class ProductController {
     }
   }
 
-  @Post()
+  @Post('addProduct')
   async addProduct(
     @Body()
     product: CreateProductDto,

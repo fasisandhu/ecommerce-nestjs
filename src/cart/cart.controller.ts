@@ -23,12 +23,14 @@ import { Role } from 'src/auth/enums/role.enum';
 export class CartController {
   constructor(private CartService: CartService) {}
 
-  @Post(':id')
+  @Post('getCart')
+  @UseGuards(JwtAuthGuard)
   async getUserCart(
-    @Param('id')
-    id: string,
+    @Req()
+    req
   ) {
-    return await this.CartService.getCart(id);
+    console.log(req.user.userId);
+    return await this.CartService.getCart(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -44,14 +46,16 @@ export class CartController {
     return await this.CartService.addItemToCart(req.user.userId, item);
   }
 
-  @Post()
-  @UseGuards(AuthGuard())
-  createCart(@Req() req, @Body() item: ItemDto): string {
-    console.log(req.user._id);
-    //console.log("logginigns")
-    return 'holaaa';
-    //await this.CartService.createCart(req.user.userId, item,item.price*item.quantity,item.price);
-  }
+  // @Post('create')
+  // @UseGuards(JwtAuthGuard)
+  // createCart(@Req() req, @Body() item: ItemDto) {
+  //   //console.log(req.user._id);
+  //   //console.log("logginigns")
+  //   //return 'holaaa';
+  //   console.log(req.user)
+  //   console.log(req.user.userId);
+  //   return this.CartService.createCart(req.user.userId, item,item.price*item.quantity,item.price);
+  // }
 
   // @Post('/addItem')
   // async addItemToCart(@Request() req, @Body() item: ItemDto)
@@ -80,12 +84,12 @@ export class CartController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User)
-  @Delete('/:id')
+  @Delete('')
   async deleteCart(
-    @Param('id')
-    id: string,
+    @Req()
+    req
   ) {
-    const cart = await this.CartService.deleteCart(id);
+    const cart = await this.CartService.deleteCart(req.user.userId);
     if (!cart) throw new NotFoundException('Cart does not exist');
     return cart;
     //return await this.CartService.deleteCart(id);

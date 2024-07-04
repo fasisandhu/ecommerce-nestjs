@@ -13,13 +13,15 @@ export class UserService {
     async addUser(user:CreateUserDto):Promise<User>
     {
         const newuser=await this.UserModel.create(user);
-        newuser.password=await bcrypt.hash(newuser.password,8);
-        return newuser.save();
+        const salt=await bcrypt.genSalt()
+        newuser.password=await bcrypt.hash(newuser.password,salt);
+        return await newuser.save();
     }
 
     async findUser(username:string):Promise<User>
     {
-        const user=await this.UserModel.findOne({username:username});
+        const user=await this.UserModel.findOne({email:username});
+        //console.log(user);
         return user;
     }
 

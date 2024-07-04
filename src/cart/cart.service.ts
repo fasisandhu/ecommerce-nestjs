@@ -3,49 +3,58 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from './schemas/cart.schema';
 import { ItemDto } from './dtos/item.dto';
 import mongoose from 'mongoose';
+import { ProductService } from 'src/product/product.service';
 
 @Injectable()
 export class CartService {
   constructor(
     @InjectModel(Cart.name) private CartModel: mongoose.Model<CartDocument>,
+    private productService:ProductService
   ) {}
 
   async createCart(
-    userid: string,
+    userId: string,
     item: ItemDto,
     subTotalPrice: number,
     totalPrice: number,
   ) {
     const cart = await this.CartModel.create({
-      userid,
+      userId,
       items: [{ ...item, subTotalPrice }],
-      totalPrice,
+      totalPrice
     });
     console.log("inside create cart")
+    console.log(userId)
     return cart.save();
   }
 
   async getCart(userId: string): Promise<CartDocument> {
-    const cart = await this.CartModel.findOne({ userid: userId });
+    console.log(userId);
+    const cart = await this.CartModel.findOne({ userId: userId }).populate('userId').populate('items.productId');
     return cart;
   }
 
   async deleteCart(userId: string): Promise<Cart> {
-    const cart = await this.CartModel.findOneAndDelete({ userid: userId });
+    const cart = await this.CartModel.findOneAndDelete({ userId: userId });
     return cart;
   }
 
   async recalCart(cart: CartDocument) {
     cart.totalPrice = 0;
-    cart.items.forEach((item) => {
-      cart.totalPrice += item.quantity * item.price;
+    cart.items.forEach(async (item) => {
+      const product=await this.productService.getProduct(item.productId)
+      cart.totalPrice += item.quantity * product.rating;
     });
   }
 
   async addItemToCart(userid:string, item:ItemDto):Promise<Cart>
   {
-      const {productId,quantity,price}=item
-      const subtotal=price*quantity
+    //rating is price
+      const {productId,quantity}=item
+
+      const product=await this.productService.getProduct(productId)
+
+      const subtotal=product.rating*quantity
 
       const cart=await this.getCart(userid);
 
@@ -57,7 +66,7 @@ export class CartService {
               {
                   let myitem=cart.items[itemIdx];
                   myitem.quantity=Number(myitem.quantity)+Number(quantity)
-                  myitem.subtotal=myitem.quantity*item.price
+                  myitem.subtotal=myitem.quantity*product.rating
 
                   cart.items[itemIdx] = myitem;
                   this.recalCart(cart)
@@ -73,7 +82,7 @@ export class CartService {
       else
           {
             console.log("inside add item")
-              const newCart=await this.createCart(userid,item,subtotal,price)
+              const newCart=await this.createCart(userid,item,subtotal,subtotal)//at start total price is equal to subtotal
               return newCart;
           }
   }
