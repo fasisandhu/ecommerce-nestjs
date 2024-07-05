@@ -2,10 +2,9 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Param,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
@@ -22,15 +21,9 @@ export class ProductController {
     @Query()
     filters: FilterProductDto,
   ): Promise<Product[]> {
-    if (Object.keys(filters).length) {
-      const products = await this.productService.getFilteredProducts(filters);
+    const products = await this.productService.getProducts(filters);
 
-      return products;
-    } else {
-      const products = await this.productService.getProducts();
-
-      return products;
-    }
+    return products;
   }
 
   @Post('addProduct')
@@ -53,10 +46,10 @@ export class ProductController {
     return prod;
   }
 
-  @Put(':id')
+  @Patch(':id')
   async updateProduct(
     @Body()
-    product: CreateProductDto,
+    product: Partial<CreateProductDto>,
 
     @Param('id')
     id: string,
